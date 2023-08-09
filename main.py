@@ -117,6 +117,7 @@ def Uni_Str_Interaction(A1, A2):
         else:
             return 0
 
+
 def Recovery_Death(A1):
     temp = np.random.randint(1, 10000)
     
@@ -155,6 +156,8 @@ def SOI(A1, A2):
         return S_Matrix[A1.Category][A2.Category] * A2.Immunity
     
 
+
+
 ## Initailizing Variables
 
 #Categories: 0 = MH, 1 = SE, 2 = CE, 3 = ST, 4 = HW, 5 = SP
@@ -166,7 +169,7 @@ Initial_Infected_Population = 1
 TTI = 3    # Time Till Isolation
 TTR = 10   # Time Till Recovery
 
-Strength = 1000    # Co-efficient of Strength of Interaction
+Strength = 1200    # Co-efficient of Strength of Interaction
 Probab = 1500      # Co-efficient of Probability of Interaction
 
 Recovery_Constant = 0.5   # Degree of Change in Immunity After Recovering from the infection 
@@ -175,6 +178,8 @@ Total_Simulation_Time = 100
 
 Vaccination_StartTime = 50
 Daily_Vaccination = 50
+
+Number_of_Iterations = 10
 
 
 ## Intermediate Calculations
@@ -203,7 +208,7 @@ S_Matrix = [[s_low, s_low, s_low, s_high, s_medium, s_medium],
 
 day = 0
 
-Daily_Count = [[day, Initial_Infected_Population]]
+itr = 0
 
 
 ## Creating the Initial World
@@ -214,75 +219,116 @@ Home_Locations = Home_Loc(Home_Ratio, Grid)
 Work_Ratio = int(Grid * Grid * 0.2)         # Ratio of Work Locations in the Given Area
 Work_Locations = Work_Loc(Work_Ratio, Home_Locations)
 
-Population = Agent_init(Population_Size)    # Initailize the Agents in the Population
+# Population = Agent_init(Population_Size)    # Initailize the Agents in the Population
 
-Initial_Infected(Initial_Infected_Population)   # Number of Infected Agents at the Start of Simulation
+# Initial_Infected(Initial_Infected_Population)   # Number of Infected Agents at the Start of Simulation
+
+
+
 
 
 ## Starting the Interaction Process
 
-while day < Total_Simulation_Time:
-    day += 1
-    # Introducing Vaccination
-    if day > Vaccination_StartTime:
-        vaccinate = np.random.choice(Population, Daily_Vaccination)
-        for x in vaccinate:
-            if x.Vaccination_Status == 0:
-                x.Vaccination_Status = 1
-                x.Immunity = x.Immunity * 0.5
-            elif x.Vaccination_Status == 1:
-                x.Vaccination_Status = 2
-                x.Immunity = 0
+Multiple = []
 
-    Infected = []      # Temporary list for Infected Population
-    Non_Infected = []  # Temporary list for Non-Infected Population
+while itr < Number_of_Iterations:
+    itr += 1
+    day = 0
+    Population = Agent_init(Population_Size)
+    Initial_Infected(Initial_Infected_Population) 
+    Daily_Count = [[day, Initial_Infected_Population]]
+    while day < Total_Simulation_Time:
+        day += 1
+        # Introducing Vaccination
+        if day > Vaccination_StartTime:
+            vaccinate = np.random.choice(Population, Daily_Vaccination)
+            for x in vaccinate:
+                if x.Vaccination_Status == 0:
+                    x.Vaccination_Status = 1
+                    x.Immunity = x.Immunity * 0.5
+                elif x.Vaccination_Status == 1:
+                    x.Vaccination_Status = 2
+                    x.Immunity = 0
 
-    for y in Population:          # Seggregating the Population into temporary list
-        if y.Infection_Status == 0:
-            Non_Infected.append(y)
-        elif y.Infection_Status == 1:
-            Infected.append(y)
-        elif y.Infection_Status == 2:
-            y.Time_Till_Recovery -= 1    # Recovery Time Calculation
-            if y.Time_Till_Recovery == 0:
-                Recovery_Death(y)
+        Infected = []      # Temporary list for Infected Population
+        Non_Infected = []  # Temporary list for Non-Infected Population
 
-    for i in Infected:          # Actual Interaction
-        for j in Non_Infected:
-            if Probability(POI(i, j)) is True:
-                if Probability(SOI(i, j)) is True:
-                    j.Infection_Status = 1
+        for y in Population:          # Seggregating the Population into temporary list
+            if y.Infection_Status == 0:
+                Non_Infected.append(y)
+            elif y.Infection_Status == 1:
+                Infected.append(y)
+            elif y.Infection_Status == 2:
+                y.Time_Till_Recovery -= 1    # Recovery Time Calculation
+                if y.Time_Till_Recovery == 0:
+                    Recovery_Death(y)
+
+        for i in Infected:          # Actual Interaction
+            for j in Non_Infected:
+                if Probability(POI(i, j)) is True:
+                    if Probability(SOI(i, j)) is True:
+                        j.Infection_Status = 1
+            
+            i.Time_Till_Isolation -= 1      # Isolation Time Calculation
+            if i.Time_Till_Isolation == 0:
+                i.Infection_Status = 2
         
-        i.Time_Till_Isolation -= 1      # Isolation Time Calculation
-        if i.Time_Till_Isolation == 0:
-            i.Infection_Status = 2
-    
-    Daily_Count.append([day, len(Infected)])   # Daily count of Number of Infected Agents
+        Daily_Count.append([day, len(Infected)])   # Daily count of Number of Infected Agents
+
+    count = []
+    infected = []
+    for i in Daily_Count:
+        count.append(i[0])
+        infected.append(i[1])
+
+    Multiple.append(infected)
+
+#print(Multiple, end="\n")
+
+Mean = []
+Standard_Deviation = []
+sd_above = []
+sd_below = []
+buff = []
+
+for i in range(len(Multiple[0])):
+    lis = []
+    for j in range(len(Multiple)):
+        lis.append(Multiple[j][i])
+    mean = np.average(lis)
+    sd = np.std(lis)
+    Mean.append(mean)
+    Standard_Deviation.append(sd)
+    buff.append(i)
+    sd_above.append(mean + sd)
+    if (mean-sd) > 0:
+        sd_below.append(mean - sd)
+    else:
+        sd_below.append(0)
+
+#print(Multiple)
+# print(Mean)
+# print(Standard_Deviation)
     
 # Time Taken for Simulation
 End_Time = time.time()
 print("Time Taken for Simulation = ", End_Time - Start_Time)
 
-#print(Daily_Count)
-
-
 ## Plotting the Results
+
+
 
 plt.figure(dpi = 100)
 
-count = []
-infected = []
-for i in Daily_Count:
-    count.append(i[0])
-    infected.append(i[1])
-
-plt.plot(np.array(count),np.array(infected))
+plt.plot(buff, Mean, label = 'Mean')
+plt.plot(buff, sd_above, label = 'sd_above', linestyle = '--')
+plt.plot(buff, sd_below, label = 'sd_below', linestyle = '--')
 
 plt.title('Curve of Growth of Infection w.r.t. Time')
 plt.xlabel('Number of Days')
 plt.ylabel('Total Number of Infected Agents')
 
-
+plt.legend()
 plt.show()
 
     
