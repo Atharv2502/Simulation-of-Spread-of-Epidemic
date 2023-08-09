@@ -1,70 +1,48 @@
+## Index
+# 11 - Importing Libraries
+# 19 - Defining Classes
+# 32 - Defining Function
+# 658 - Initializing the Variables
+# 680 - Intermediate Calculations
+# 695 - Creating Initial World
+# 711 - Starting the Interaction Process
+# 754 - Plotting the Results
+
 # Importing Libraries
 import numpy as np
-import tkinter as tk
 import matplotlib.pyplot as plt
+import time
 
-# Defining Variables
+## Time Taken for Simulation
+Start_Time = time.time()
 
-Grid = 10          # Size of the Grid
-
-Population = 1000
-
-p_high = 30        # Strength of Interaction
-p_medium = 20
-p_low = 10
-
-high = 15          # Probability of Interaction
-medium = 10
-low = 5
-
-# Home : Work ratio = 9 : 1
-
-Day = 0
-Simulation_Time = 25
-
-# Database
-Categories = ["MH", "SE", "CE", "ST", "HW", "SP"]
-Agents = []
-Non_Infected = []
-Infected = []
-Recovered = []
-Death = []
-Daily_Count = []
-
-# Defining Classes
-
+## Defining Classes
 class Agent:
-    def __init__(self, id, Category, Home, Work, Time_Till_Isolation):
+    def __init__(self, id, Category, Home, Work, Time_Till_Isolation, Immunity, Time_Till_Recovery, Infection_Status, Vaccination_Status):
         self.id = id
         self.Category = Category  # Categories (MH, SE, CE, ST, HW, SP)
         self.Home = Home  # (i,j)
         self.Work = Work  # (i, j)
-        self.Time_Till_Isolation = Time_Till_Isolation  # (default time = 3)
+        self.Time_Till_Isolation = Time_Till_Isolation  # (default = 3)
+        self.Immunity = Immunity
+        self.Time_Till_Recovery = Time_Till_Recovery # (default = 3)
+        self.Infection_Status = Infection_Status # (default = 0[Non-Infected], 1[Infected], 2[Isolation], 3[Death])
+        self.Vaccination_Status = Vaccination_Status # (default = 0[Non-Vaccinated], 1[Partially Vaccinated], 2[Completely Vaccinated])
 
-# Defining Functions
+## Defining Functions
 
-def Agent_init(n, lis):
-    for i in range(n):
-        cat = np.random.choice(Categories)
-        Home = np.random.choice(len(Home_Locations))
-        Home = Home_Locations[Home]
-        Work = np.random.choice(len(Work_Locations))
-        Work = Work_Locations[Work]
-        temp = Agent(i, cat, Home, Work, Time_Till_Isolation = 3)
-        lis.append(temp)
-
-def Home_loc(N):
+def Home_Loc(N, Grid):
     Home_loc = []
     for i in range(N):
         loc = np.random.randint(1, Grid + 1, size=2)
         loc = np.split(loc, 2)
         temp = [loc[0][0], loc[1][0]]
         if temp not in Home_loc:
-            Home_loc.append(temp)
-
+            Home_loc.append(temp)   
+    
     return Home_loc
 
-def Work_loc(N, Home):
+def Work_Loc(N, Home):
     Work_loc = []
     count = 0
     while count < N:
@@ -77,6 +55,24 @@ def Work_loc(N, Home):
             count += 1
 
     return Work_loc
+
+def Agent_init(n):
+    Array = np.array([])
+    for i in range(n):
+        Category = np.random.choice(Categories)
+        Home = np.random.choice(len(Home_Locations))
+        Home = Home_Locations[Home]
+        Work = np.random.choice(len(Work_Locations))
+        Work = Work_Locations[Work]
+        temp = Agent(i, Category, Home, Work, 
+                     Time_Till_Isolation = TTI, 
+                     Immunity = 1, 
+                     Time_Till_Recovery = TTR, 
+                     Infection_Status = 0, 
+                     Vaccination_Status = 0)
+        Array = np.append(Array, temp)
+    
+    return Array
 
 def Neighbour(x):
     m1 = [x[0] - 1, x[1] - 1]
@@ -92,11 +88,11 @@ def Neighbour(x):
 
 def Distance(a, b):
     dist = np.square(a.Home[0] - b.Home[0]) + np.square(a.Home[1] - b.Home[1])
-    temp = np.sqrt(dist)
+    temp = np.sqrt(dist) # * Grid
     return temp
 
 def Probability(x):
-    temp = np.random.randint(1, 100)
+    temp = np.random.randint(1, 10000)
     #print(temp)
     if temp < x:
         return True
@@ -105,13 +101,18 @@ def Probability(x):
 
 def Uni_Prob_Interaction(a, b):
     if a.Home == b.Home:
-        return high
-    elif a.Home in Neighbour(b.Home):
-        return medium
-    
-def Uni_Str_Interaction(a, b):
-    if a.Home == b.Home:
         return p_high
+    elif a.Home in Neighbour(b.Home):
+        return p_medium
+
+def Uni_Str_Interaction(A1, A2):
+    if A1.Home == A2.Home:
+        if A2.Vaccination_Status == 0:
+            return s_high * A2.Immunity
+        elif A2.Vaccination_Status == 1:
+            return s_high * A2.Immunity * 0.5
+        else:
+            return 0
 
 def Choice(a, b):
     if a.Category == "MH" and b.Category == "MH":
@@ -187,11 +188,6 @@ def Choice(a, b):
     elif a.Category == "SP" and b.Category == "SP":
         return 'FF'
 
-def Distance_Factor(type, A1, A2):
-    dist = Distance(A1, A2)
-    temp = int(type / dist)
-    return temp
-
 def Probability_of_Interaction(A1, A2):
     choice = Choice(A1, A2)
 
@@ -200,7 +196,7 @@ def Probability_of_Interaction(A1, A2):
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'AB':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -208,16 +204,16 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'AC':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'AD':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -225,16 +221,16 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'AE':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'AF':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -242,16 +238,16 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
     
     elif choice == 'BB':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'BC':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -259,9 +255,9 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'BD':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -269,9 +265,9 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'BE':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -279,25 +275,25 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'BF':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
     
     elif choice == 'CC':
         temp = Uni_Prob_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return high
+            return p_high
         elif temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'CD':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -305,32 +301,32 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'CE':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'CF':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'DD':
         temp = Uni_Prob_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return high
+            return p_high
         elif temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
     
     elif choice == 'DE':
         temp = Uni_Prob_Interaction(A1, A2)
@@ -338,44 +334,44 @@ def Probability_of_Interaction(A1, A2):
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
             
     elif choice == 'DF':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
     
     elif choice == 'EE':
         temp = Uni_Prob_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return high
+            return p_high
         elif temp != None:
             return temp
         else:
             if Distance(A1, A2) < 2:
-                return Distance_Factor(medium, A1, A2)
+                return p_medium / Distance(A1, A2)
             else:
-                return Distance_Factor(low, A1, A2)
+                return p_low / Distance(A1, A2)
     
     elif choice == 'EF':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
         
     elif choice == 'FF':
         temp = Uni_Prob_Interaction(A1, A2)
         if temp != None:
             return temp
         elif A1.Work == A2.Work:
-            return medium
+            return p_medium
         else:
-            return Distance_Factor(low, A1, A2)
+            return p_low / Distance(A1, A2)
 
 def Strength_of_Interaction(A1, A2):
     choice = Choice(A1, A2)
@@ -383,218 +379,395 @@ def Strength_of_Interaction(A1, A2):
     if choice == 'AA':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
-            return temp
+            return temp 
         else:
-            return p_low
-        
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
+            
     elif choice == 'AB':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'AC':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'AD':
-        return p_high
+        if A2.Vaccination_Status == 0:
+            return s_high * A2.Immunity
+        elif A2.Vaccination_Status == 1:
+            return s_high * A2.Immunity * 0.5
+        else:
+            return 0
             
     elif choice == 'AE':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'AF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
     
     elif choice == 'BB':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'BC':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'BD':
-            return p_high
+            if A2.Vaccination_Status == 0:
+                return s_high * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_high * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'BE':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'BF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
     
     elif choice == 'CC':
         temp = Uni_Str_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return p_high
+            if A2.Vaccination_Status == 0:
+                return s_high * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_high * A2.Immunity * 0.5
+            else:
+                return 0
         elif temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'CD':
-        return p_high
+            if A2.Vaccination_Status == 0:
+                return s_high * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_high * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'CE':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'CF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'DD':
         temp = Uni_Str_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return p_high
+            if A2.Vaccination_Status == 0:
+                return s_high * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_high * A2.Immunity * 0.5
+            else:
+                return 0
         elif temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
     
     elif choice == 'DE':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
             
     elif choice == 'DF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
     
     elif choice == 'EE':
         temp = Uni_Str_Interaction(A1, A2)
         if A1.Work == A2.Work:
-            return p_high
+            if A2.Vaccination_Status == 0:
+                return s_high * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_high * A2.Immunity * 0.5
+            else:
+                return 0
         elif temp != None:
             return temp
         else:
-            return p_medium
+            if A2.Vaccination_Status == 0:
+                return s_medium * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_medium * A2.Immunity * 0.5
+            else:
+                return 0
     
     elif choice == 'EF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
         
     elif choice == 'FF':
         temp = Uni_Str_Interaction(A1, A2)
         if temp != None:
             return temp
         else:
-            return p_low
+            if A2.Vaccination_Status == 0:
+                return s_low * A2.Immunity
+            elif A2.Vaccination_Status == 1:
+                return s_low * A2.Immunity * 0.5
+            else:
+                return 0
 
-def Recovery_Death(a, Rcvry, Death):
-    temp = np.random.randint(1, 100)
-    if temp < 90:
-        Rcvry.append(a)
+def Recovery_Death(A1):
+    temp = np.random.randint(1, 10000)
+    
+    if temp < 9900:
+        A1.Infection_Status = 0
+        A1.Immunity = A1.Immunity * Recovery_Constant
+        A1.Time_Till_Isolation = TTI
+        A1.Time_Till_Recovery = TTR
+        
     else: 
-        Death.append(a)
+        A1.Infection_Status = 3
 
-def Check_Index(x, lis):
-    for i in range(len(lis)):
-        if lis[i] == x:
-            return i
-
-
-N1 = int(Grid * Grid * 0.9) #Number of Homes
-Home_Locations = Home_loc(N1)
-N2 = int(Grid * Grid * 0.1) # Number of Workplaces
-Work_Locations = Work_loc(N2, Home_Locations)
-
-Agent_init(Population, Non_Infected)
-
-select = np.random.choice(len(Non_Infected), size = 1)
-select = np.sort(select)[::-1]
-for i in select:
-    if i not in Infected:
-        Infected.append(Non_Infected[i])
-        Non_Infected.pop(i)
+def Initial_Infected(N):
+    select = np.random.choice(Population_Size, size = N)
+    for i in select:
+        Population[i].Infection_Status = 1
 
 
-Daily_Count.append([Day, len(Infected), len(Non_Infected), len(Recovered), len(Death)])
-while Day < Simulation_Time:
-    Daily_Infected = []
-    for i in Infected:
+## Initailizing Variables
+
+Categories = ["MH", "SE", "CE", "ST", "HW", "SP"]
+
+Grid = 20
+Population_Size = 1000
+Initial_Infected_Population = 1
+
+TTI = 3    # Time Till Isolation
+TTR = 10   # Time Till Recovery
+
+Strength = 1200    # Co-efficient of Strength of Interaction
+Probab = 1500      # Co-efficient of Probability of Interaction
+
+Recovery_Constant = 0.5   # Degree of Change in Immunity After Recovering from the infection 
+
+Total_Simulation_Time = 100
+
+Vaccination_StartTime = 50
+Daily_Vaccination = 1000
+
+
+## Intermediate Calculations
+
+s_high = Strength
+s_medium = Strength * (2/3)
+s_low = Strength * (1/3)
+
+p_high = Probab
+p_medium = Probab * (2/3)
+p_low = Probab * (1/3)
+
+day = 0
+
+Daily_Count = [[day, Initial_Infected_Population]]
+
+
+## Creating the Initial World
+
+Home_Ratio = int(Grid * Grid * 0.8)          # Ratio of Homes in the Given Area
+Home_Locations = Home_Loc(Home_Ratio, Grid)
+
+Work_Ratio = int(Grid * Grid * 0.2)         # Ratio of Work Locations in the Given Area
+Work_Locations = Work_Loc(Work_Ratio, Home_Locations)
+
+Population = Agent_init(Population_Size)    # Initailize the Agents in the Population
+
+Initial_Infected(Initial_Infected_Population)   # Number of Infected Agents at the Start of Simulation
+
+
+
+
+
+## Starting the Interaction Process
+
+while day < Total_Simulation_Time:
+    day += 1
+    # Introducing Vaccination
+    if day > Vaccination_StartTime:
+        vaccinate = np.random.choice(Population, Daily_Vaccination)
+        for x in vaccinate:
+            if x.Vaccination_Status == 0:
+                x.Vaccination_Status = 1
+                
+            elif x.Vaccination_Status == 1:
+                x.Vaccination_Status = 2
+
+    Infected = []      # Temporary list for Infected Population
+    Non_Infected = []  # Temporary list for Non-Infected Population
+
+    for y in Population:          # Seggregating the Population into temporary list
+        if y.Infection_Status == 0:
+            Non_Infected.append(y)
+        elif y.Infection_Status == 1:
+            Infected.append(y)
+        elif y.Infection_Status == 2:
+            y.Time_Till_Recovery -= 1    # Recovery Time Calculation
+            if y.Time_Till_Recovery == 0:
+                Recovery_Death(y)
+
+    for i in Infected:          # Actual Interaction
         for j in Non_Infected:
             if Probability(Probability_of_Interaction(i, j)) is True:
                 if Probability(Strength_of_Interaction(i, j)) is True:
-                    Daily_Infected.append(j)
-                    curr = Check_Index(j, Non_Infected)
-                    Non_Infected.pop(curr)
-        i.Time_Till_Isolation -= 1
+                    j.Infection_Status = 1
+        
+        i.Time_Till_Isolation -= 1      # Isolation Time Calculation
         if i.Time_Till_Isolation == 0:
-            buff = Check_Index(i, Infected)
-            Infected.pop(buff)
-            Recovery_Death(i, Recovered, Death)
-    for k in Daily_Infected:
-        Infected.append(k)
-    Day += 1
-    Daily_Count.append([Day, len(Infected), len(Non_Infected), len(Recovered), len(Death)])
+            i.Infection_Status = 2
+    
+    Daily_Count.append([day, len(Infected)])   # Daily count of Number of Infected Agents
+    
+# Time Taken for Simulation
+End_Time = time.time()
+print("Time Taken for Simulation = ", End_Time - Start_Time)
 
-print(Daily_Count)
+## Plotting the Results
 
+plt.figure(dpi = 100)
 
-plt.figure(dpi=100)
-
-# Creating an array from the list
 count = []
 infected = []
 for i in Daily_Count:
-    count.append(i[0]) 
+    count.append(i[0])
     infected.append(i[1])
-    print("(", i[0], " - ", i[1], ")", end=" ")
 
-x = np.array(count)
-y = np.array(infected)
+plt.plot(np.array(count),np.array(infected))
 
-# print(x)
-# print(y)
+plt.title('Curve of Growth of Infection w.r.t. Time')
+plt.xlabel('Number of Days')
+plt.ylabel('Total Number of Infected Agents')
 
-# Plotting Numpy array
-plt.plot(x,y)
 
-# Adding details to the plot
-plt.title('Plot NumPy array')
-plt.xlabel('count')
-plt.ylabel('infected')
-
-# Displaying the plot
 plt.show()
+
+    
