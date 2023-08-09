@@ -59,11 +59,14 @@ def Work_Loc(N, Home):
 def Agent_init(n):
     Array = np.array([])
     for i in range(n):
-        Category = np.random.choice(Categories)
+        Category = np.random.randint(6)
         Home = np.random.choice(len(Home_Locations))
         Home = Home_Locations[Home]
-        Work = np.random.choice(len(Work_Locations))
-        Work = Work_Locations[Work]
+        if Category > 1:
+            Work = np.random.choice(len(Work_Locations))
+            Work = Work_Locations[Work]
+        else:
+            Work = None
         temp = Agent(i, Category, Home, Work, 
                      Time_Till_Isolation = TTI, 
                      Immunity = 1, 
@@ -114,529 +117,6 @@ def Uni_Str_Interaction(A1, A2):
         else:
             return 0
 
-def Choice(a, b):
-    if a.Category == "MH" and b.Category == "MH":
-        return 'AA'
-    elif a.Category == "MH" and b.Category == "SE":
-        return 'AB'
-    elif a.Category == "MH" and b.Category == "CE":
-        return 'AC'
-    elif a.Category == "MH" and b.Category == "HW":
-        return 'AD'
-    elif a.Category == "MH" and b.Category == "ST":
-        return 'AE'
-    elif a.Category == "MH" and b.Category == "SP":
-        return 'AF'
-    elif a.Category == "SE" and b.Category == "MH":
-        return 'AB'
-    elif a.Category == "SE" and b.Category == "SE":
-        return 'BB'
-    elif a.Category == "SE" and b.Category == "CE":
-        return 'BC'
-    elif a.Category == "SE" and b.Category == "HW":
-        return 'BD'
-    elif a.Category == "SE" and b.Category == "ST":
-        return 'BE'
-    elif a.Category == "SE" and b.Category == "SP":
-        return 'BF'
-    elif a.Category == "CE" and b.Category == "MH":
-        return 'AC'
-    elif a.Category == "CE" and b.Category == "SE":
-        return 'BC'
-    elif a.Category == "CE" and b.Category == "CE":
-        return 'CC'
-    elif a.Category == "CE" and b.Category == "HW":
-        return 'CD'
-    elif a.Category == "CE" and b.Category == "ST":
-        return 'CE'
-    elif a.Category == "CE" and b.Category == "SP":
-        return 'CF'
-    elif a.Category == "HW" and b.Category == "MH":
-        return 'AD'
-    elif a.Category == "HW" and b.Category == "SE":
-        return 'BD'
-    elif a.Category == "HW" and b.Category == "CE":
-        return 'CD'
-    elif a.Category == "HW" and b.Category == "HW":
-        return 'DD'
-    elif a.Category == "HW" and b.Category == "ST":
-        return 'DE'
-    elif a.Category == "HW" and b.Category == "SP":
-        return 'DF'
-    elif a.Category == "ST" and b.Category == "MH":
-        return 'AE'
-    elif a.Category == "ST" and b.Category == "SE":
-        return 'BE'
-    elif a.Category == "ST" and b.Category == "CE":
-        return 'CE'
-    elif a.Category == "ST" and b.Category == "HW":
-        return 'DE'
-    elif a.Category == "ST" and b.Category == "ST":
-        return 'EE'
-    elif a.Category == "ST" and b.Category == "SP":
-        return 'EF'
-    elif a.Category == "SP" and b.Category == "MH":
-        return 'AF'
-    elif a.Category == "SP" and b.Category == "SE":
-        return 'BF'
-    elif a.Category == "SP" and b.Category == "CE":
-        return 'CF'
-    elif a.Category == "SP" and b.Category == "HW":
-        return 'DF'
-    elif a.Category == "SP" and b.Category == "ST":
-        return 'EF'
-    elif a.Category == "SP" and b.Category == "SP":
-        return 'FF'
-
-def Probability_of_Interaction(A1, A2):
-    choice = Choice(A1, A2)
-
-    if choice == 'AA':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'AB':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'AC':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'AD':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'AE':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'AF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-    
-    elif choice == 'BB':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'BC':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'BD':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'BE':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'BF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-    
-    elif choice == 'CC':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            return p_high
-        elif temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'CD':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'CE':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'CF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'DD':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            return p_high
-        elif temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-    
-    elif choice == 'DE':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-            
-    elif choice == 'DF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-    
-    elif choice == 'EE':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            return p_high
-        elif temp != None:
-            return temp
-        else:
-            if Distance(A1, A2) < 2:
-                return p_medium / Distance(A1, A2)
-            else:
-                return p_low / Distance(A1, A2)
-    
-    elif choice == 'EF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            return p_low / Distance(A1, A2)
-        
-    elif choice == 'FF':
-        temp = Uni_Prob_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        elif A1.Work == A2.Work:
-            return p_medium
-        else:
-            return p_low / Distance(A1, A2)
-
-def Strength_of_Interaction(A1, A2):
-    choice = Choice(A1, A2)
-
-    if choice == 'AA':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp 
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'AB':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'AC':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'AD':
-        if A2.Vaccination_Status == 0:
-            return s_high * A2.Immunity
-        elif A2.Vaccination_Status == 1:
-            return s_high * A2.Immunity * 0.5
-        else:
-            return 0
-            
-    elif choice == 'AE':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'AF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-    
-    elif choice == 'BB':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'BC':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'BD':
-            if A2.Vaccination_Status == 0:
-                return s_high * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_high * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'BE':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'BF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-    
-    elif choice == 'CC':
-        temp = Uni_Str_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            if A2.Vaccination_Status == 0:
-                return s_high * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_high * A2.Immunity * 0.5
-            else:
-                return 0
-        elif temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'CD':
-            if A2.Vaccination_Status == 0:
-                return s_high * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_high * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'CE':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'CF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'DD':
-        temp = Uni_Str_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            if A2.Vaccination_Status == 0:
-                return s_high * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_high * A2.Immunity * 0.5
-            else:
-                return 0
-        elif temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-    
-    elif choice == 'DE':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-            
-    elif choice == 'DF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-    
-    elif choice == 'EE':
-        temp = Uni_Str_Interaction(A1, A2)
-        if A1.Work == A2.Work:
-            if A2.Vaccination_Status == 0:
-                return s_high * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_high * A2.Immunity * 0.5
-            else:
-                return 0
-        elif temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_medium * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_medium * A2.Immunity * 0.5
-            else:
-                return 0
-    
-    elif choice == 'EF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-        
-    elif choice == 'FF':
-        temp = Uni_Str_Interaction(A1, A2)
-        if temp != None:
-            return temp
-        else:
-            if A2.Vaccination_Status == 0:
-                return s_low * A2.Immunity
-            elif A2.Vaccination_Status == 1:
-                return s_low * A2.Immunity * 0.5
-            else:
-                return 0
-
 def Recovery_Death(A1):
     temp = np.random.randint(1, 10000)
     
@@ -654,10 +134,30 @@ def Initial_Infected(N):
     for i in select:
         Population[i].Infection_Status = 1
 
+def POI(A1, A2):
+    if A1.Work == A2.Work and A1.Work != None:
+        return p_high
+    temp = Uni_Prob_Interaction(A1, A2)
+    if temp != None:
+        return temp
+    else:
+        dist = Distance(A1, A2)
+        if dist < 5:
+            return P_Matrix[A1.Category][A2.Category] / dist
+        else:
+            return p_low / dist
+
+def SOI(A1, A2):
+    temp = Uni_Str_Interaction(A1, A2)
+    if temp != None:
+        return temp * A2.Immunity
+    else:
+        return S_Matrix[A1.Category][A2.Category] * A2.Immunity
+    
 
 ## Initailizing Variables
 
-Categories = ["MH", "SE", "CE", "ST", "HW", "SP"]
+#Categories: 0 = MH, 1 = SE, 2 = CE, 3 = ST, 4 = HW, 5 = SP
 
 Grid = 20
 Population_Size = 1000
@@ -666,7 +166,7 @@ Initial_Infected_Population = 1
 TTI = 3    # Time Till Isolation
 TTR = 10   # Time Till Recovery
 
-Strength = 1200    # Co-efficient of Strength of Interaction
+Strength = 1000    # Co-efficient of Strength of Interaction
 Probab = 1500      # Co-efficient of Probability of Interaction
 
 Recovery_Constant = 0.5   # Degree of Change in Immunity After Recovering from the infection 
@@ -674,7 +174,7 @@ Recovery_Constant = 0.5   # Degree of Change in Immunity After Recovering from t
 Total_Simulation_Time = 100
 
 Vaccination_StartTime = 50
-Daily_Vaccination = 1000
+Daily_Vaccination = 50
 
 
 ## Intermediate Calculations
@@ -686,6 +186,20 @@ s_low = Strength * (1/3)
 p_high = Probab
 p_medium = Probab * (2/3)
 p_low = Probab * (1/3)
+
+P_Matrix = [[p_low, p_medium, p_low,  p_medium, p_low, p_medium],
+            [p_medium, p_low, p_medium,  p_medium, p_medium, p_low],
+            [p_low, p_medium, p_low,  p_medium, p_low, p_low],
+            [p_medium, p_medium, p_medium,  p_low, p_medium, p_low],
+            [p_low, p_medium, p_low,  p_medium, p_medium, p_low],
+            [p_medium, p_low, p_low,  p_low, p_low, p_low]]
+
+S_Matrix = [[s_low, s_low, s_low, s_high, s_medium, s_medium],
+            [s_low, s_low, s_low, s_high, s_medium, s_low],
+            [s_low, s_low, s_low, s_high, s_low, s_low],
+            [s_high, s_high, s_high, s_medium, s_medium, s_medium],
+            [s_medium, s_medium, s_low, s_medium, s_low, s_low],
+            [s_medium, s_low, s_low, s_high, s_low, s_low]]
 
 day = 0
 
@@ -705,9 +219,6 @@ Population = Agent_init(Population_Size)    # Initailize the Agents in the Popul
 Initial_Infected(Initial_Infected_Population)   # Number of Infected Agents at the Start of Simulation
 
 
-
-
-
 ## Starting the Interaction Process
 
 while day < Total_Simulation_Time:
@@ -718,9 +229,10 @@ while day < Total_Simulation_Time:
         for x in vaccinate:
             if x.Vaccination_Status == 0:
                 x.Vaccination_Status = 1
-                
+                x.Immunity = x.Immunity * 0.5
             elif x.Vaccination_Status == 1:
                 x.Vaccination_Status = 2
+                x.Immunity = 0
 
     Infected = []      # Temporary list for Infected Population
     Non_Infected = []  # Temporary list for Non-Infected Population
@@ -737,8 +249,8 @@ while day < Total_Simulation_Time:
 
     for i in Infected:          # Actual Interaction
         for j in Non_Infected:
-            if Probability(Probability_of_Interaction(i, j)) is True:
-                if Probability(Strength_of_Interaction(i, j)) is True:
+            if Probability(POI(i, j)) is True:
+                if Probability(SOI(i, j)) is True:
                     j.Infection_Status = 1
         
         i.Time_Till_Isolation -= 1      # Isolation Time Calculation
@@ -750,6 +262,9 @@ while day < Total_Simulation_Time:
 # Time Taken for Simulation
 End_Time = time.time()
 print("Time Taken for Simulation = ", End_Time - Start_Time)
+
+#print(Daily_Count)
+
 
 ## Plotting the Results
 
